@@ -11,11 +11,15 @@ export async function GET(req: Request, { params }: Params) {
     const product = await ProductService.getById(params.id)
 
     if (!product) {
-        return NextResponse.json({ message: 'Product not found', status: 404 })
+        return NextResponse.json(
+          { message: 'Product not found' },
+          { status: 404 } 
+        )
     }
 
     return NextResponse.json(product)
 }
+
 
 export async function DELETE(req: Request, { params }: Params) {
     try {

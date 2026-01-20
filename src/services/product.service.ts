@@ -7,6 +7,7 @@ export class ProductService {
       data: {
         ...data,
         clerkId: userId,
+        image: ''
       },
     });
   }
@@ -18,7 +19,12 @@ export class ProductService {
   }
 
   static async getById(id: string) {
-    return db.product.findUnique({ where: { id } });
+    const products = await this.list()
+    const existingProduct = null;
+    for (const element of products) {
+      if (element.id === 'id') return element
+    }
+    return undefined
   }
 
   static async deleteProduct(id: string) {
