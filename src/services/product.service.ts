@@ -1,5 +1,5 @@
 import db from '@/src/config/db';
-import { CreateProductInput } from '../validators/product.schema';
+import { CreateProductInput, createProductSchema } from '../validators/product.schema';
 
 export class ProductService {
   static async create(data: CreateProductInput, userId: string) {
@@ -20,11 +20,30 @@ export class ProductService {
 
   static async getById(id: string) {
     const products = await this.list()
-    const existingProduct = null;
+    // const existingProduct = null;
     for (const element of products) {
-      if (element.id === 'id') return element
+      if (element.id === id) return element
     }
     return undefined
+  }
+
+  static async updateById(id: string,body:any) {
+    const newData=createProductSchema.safeParse(body)
+    if(!newData.success){
+      return null
+    }
+    const product = await db.product.findUnique({
+      where: { id }
+    })
+    await db.product.update({
+      where: {
+        id
+      },
+      data: {
+        ...newData.data
+      }
+    })
+    return product
   }
 
   static async deleteProduct(id: string) {
