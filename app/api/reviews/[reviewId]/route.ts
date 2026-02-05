@@ -2,9 +2,9 @@ import { NextResponse } from 'next/server';
 import { ReviewService } from '@/src/services/review.service';
 
 type Params = {
-  params: {
+  params: Promise<{
     reviewId: string;
-  };
+  }>;
 };
 
 export async function DELETE(
@@ -12,7 +12,8 @@ export async function DELETE(
   { params }: Params
 ) {
   try {
-    await ReviewService.deleteById(params.reviewId);
+    const { reviewId } = await params
+    await ReviewService.deleteById(reviewId);
     return NextResponse.json(null, { status: 204 });
   } catch {
     return NextResponse.json(
