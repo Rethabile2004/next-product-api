@@ -1,22 +1,39 @@
 import { PrismaClient } from '@prisma/client';
-import { PrismaPg } from '@prisma/adapter-pg'; 
+import { PrismaPg } from '@prisma/adapter-pg';
 import pg from 'pg';
 
 const connectionString = process.env.DATABASE_URL;
-const pool = new pg.Pool({ connectionString });
+
+if (!connectionString) {
+  throw new Error('DATABASE_URL is not defined in .env');
+}
+
+const pool = new pg.Pool({
+  connectionString,
+  max: 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 2000,
+});
 
 const prismaClientSingleton = () => {
-  return new PrismaClient({ adapter: new PrismaPg(pool) });
+  const adapter = new PrismaPg(pool);
+
+  return new PrismaClient({
+    adapter,
+    log: process.env.NODE_ENV === 'development' ? ['query', 'info', 'warn', 'error'] : ['error'],
+  });
 };
 
-type PrismaClientSingleton = ReturnType<typeof prismaClientSingleton>;
+type PrismaSingleton = ReturnType<typeof prismaClientSingleton>;
 
 const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClientSingleton | undefined;
+  prisma: PrismaSingleton | undefined;
 };
 
 const prisma = globalForPrisma.prisma ?? prismaClientSingleton();
 
-export default prisma;
+if (process.env.NODE_ENV !== 'production') {
+  globalForPrisma.prisma = prisma;
+}
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
+export default prisma;
