@@ -2,14 +2,12 @@ import { ProductService } from "@/src/services/product.service";
 import { NextResponse } from "next/server";
 
 type Params = {
-
-    params: {
-        id: string
-    }
+    params: Promise<{ id: string }>
 }
-// Promise<>
+
 export async function GET(req: Request, { params }: Params) {
-    const product = await ProductService.getById(params.id)
+    const { id } = await params
+    const product = await ProductService.getById(id)
 
     if (!product) {
         return NextResponse.json(
@@ -22,14 +20,15 @@ export async function GET(req: Request, { params }: Params) {
 
 
 export async function DELETE(req: Request, { params }: Params) {
+    const { id } = await params
     try {
-        const product = await ProductService.deleteProduct(params.id)
+        const product = await ProductService.deleteProduct(id)
         return NextResponse.json(product)
 
     } catch (error) {
         return NextResponse.json(
-            { message: 'Product not found' },
-            { status: 400 }
+            { message: 'Failed to delete product' },
+            { status: 500 }
         )
     }
 }

@@ -19,34 +19,41 @@ export class ProductService {
   }
 
   static async getById(id: string) {
-    const products = await this.list()
-    // const existingProduct = null;
-    for (const element of products) {
-      if (element.id === id) return element
-    }
-    return undefined
+    const product = await db.product.findUnique({
+      where: { id }
+    })
+    return product
   }
 
-  static async updateById(id: string,body:any) {
-    const newData=createProductSchema.safeParse(body)
-    if(!newData.success){
+  static async updateById(id: string, body: any) {
+    const newData = createProductSchema.safeParse(body)
+
+    if (!newData.success) {
       return null
     }
     const product = await db.product.findUnique({
       where: { id }
     })
-    await db.product.update({
-      where: {
-        id
-      },
-      data: {
-        ...newData.data
-      }
-    })
-    return product
+    try {
+      const updatedProduct = await db.product.update({
+        where: {
+          id
+        },
+        data: {
+          ...newData.data
+        }
+      })
+      return updatedProduct
+    } catch (error) {
+      return null
+    }
   }
 
   static async deleteProduct(id: string) {
-    return db.product.delete({ where: { id } });
+    try {
+      return await db.product.delete({ where: { id } });
+    } catch (error) {
+      return null
+    }
   }
 }
