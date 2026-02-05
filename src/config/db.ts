@@ -1,12 +1,11 @@
 import { PrismaClient } from '@prisma/client';
-import { PrismaPg } from '@prisma/adapter-pg'; // Example for Postgres
-import pg from 'pg'; // Need the peer dependency
+import { PrismaPg } from '@prisma/adapter-pg'; 
+import pg from 'pg';
 
 const connectionString = process.env.DATABASE_URL;
 const pool = new pg.Pool({ connectionString });
 
 const prismaClientSingleton = () => {
-  // Pass the adapter instance to the constructor
   return new PrismaClient({ adapter: new PrismaPg(pool) });
 };
 
