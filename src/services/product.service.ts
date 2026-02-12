@@ -22,6 +22,8 @@ export class ProductService {
     const product = await db.product.findUnique({
       where: { id }
     })
+    console.log(product);
+    
     return product
   }
 
