@@ -1,13 +1,7 @@
 import { NextResponse } from 'next/server';
 import { ReviewService } from '@/src/services/review.service';
 
-type Params = {
-  params: Promise<{
-    reviewId: string;
-  }>;
-};
-
-export async function DELETE(req: Request, { params }: Params) {
+export async function DELETE(req: Request) {
   try {
     const body = await req.json();
     const { reviewId, userId } = body;
