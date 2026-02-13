@@ -19,6 +19,13 @@ export class ProductService {
   }
 
   static async getById(id: string) {
+    console.log(id);
+    console.log(id);
+    console.log(id);
+    console.log(id);
+    console.log(id);
+    console.log(id);
+    
     const product = await db.product.findUnique({
       where: { id }
     })

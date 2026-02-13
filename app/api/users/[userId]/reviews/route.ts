@@ -30,12 +30,15 @@ export async function POST(req: Request, { params }: Params) {
       })
     }
     const review = await ReviewService.create(data.data);
-  
-    return NextResponse.json(review, { status: 201 });
-    
+    if (review) {
+      return NextResponse.json(review, { status: 201 });
+    }
+    return NextResponse.json({
+      message: 'Internal Server Error'
+    }, { status: 500 })
   } catch (error) {
     return NextResponse.json({
-      message:'Internal Server Error'
-    },{status:500})
+      message: 'Internal Server Error'
+    }, { status: 500 })
   }
 }

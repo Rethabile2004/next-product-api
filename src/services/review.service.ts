@@ -4,6 +4,7 @@ import { CreateReviewInput } from '@/src/validators/review.schema';
 export class ReviewService {
   static async create(data: CreateReviewInput) {
     try {
+      
       const newReview = await prisma.review.create({
         data: {
           productId: data.productId,
@@ -14,6 +15,8 @@ export class ReviewService {
           clerkId: data.clerkId,
         },
       });
+      console.log(newReview);
+      
       return newReview
     } catch (error) {
       console.log('Review creation failed')
@@ -28,10 +31,10 @@ export class ReviewService {
     });
   }
 
-  static async deleteById(reviewId: string) {
+  static async deleteById(reviewId: string, userId: string) {
     try {
       return await prisma.review.delete({
-        where: { id: reviewId },
+        where: { id: reviewId, clerkId: userId },
       });
     } catch (error) {
       console.log('Review does not exist.', error instanceof Error ? error.message : error)
