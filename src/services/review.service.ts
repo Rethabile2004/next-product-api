@@ -1,11 +1,11 @@
 import prisma from '@/src/config/db';
 import { CreateReviewInput } from '@/src/validators/review.schema';
+import { cacheReviewsForUser, fallbackStore, withDatabaseFallback } from './database-fallback';
 
 export class ReviewService {
   static async create(data: CreateReviewInput) {
-    try {
-      
-      const newReview = await prisma.review.create({
+    return withDatabaseFallback(
+      () => prisma.review.create({
         data: {
           productId: data.productId,
           rating: data.rating,
@@ -14,31 +14,40 @@ export class ReviewService {
           authorImageUrl: data.authorImageUrl! ?? null,
           clerkId: data.clerkId,
         },
-      });
-      console.log(newReview);
-      
-      return newReview
-    } catch (error) {
-      console.log('Review creation failed')
-      return null
-    }
+      }),
+      () => {
+        const review = {
+          ...data,
+          id: crypto.randomUUID(),
+          authorImageUrl: data.authorImageUrl ?? '',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+        fallbackStore.reviews.unshift(review);
+        return review;
+      },
+    );
   }
 
   static async listByUser(userId: string) {
-    return await prisma.review.findMany({
-      where: { clerkId: userId },
-      orderBy: { createdAt: 'desc' },
-    });
+    return withDatabaseFallback(
+      () => prisma.review.findMany({ where: { clerkId: userId }, orderBy: { createdAt: 'desc' } }),
+      () => fallbackStore.reviews
+        .filter((review) => review.clerkId === userId)
+        .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()),
+      (reviews) => cacheReviewsForUser(userId, reviews),
+    );
   }
 
   static async deleteById(reviewId: string, userId: string) {
-    try {
-      return await prisma.review.delete({
-        where: { id: reviewId, clerkId: userId },
-      });
-    } catch (error) {
-      console.log('Review does not exist.', error instanceof Error ? error.message : error)
-      return null
-    }
+    return withDatabaseFallback(
+      () => prisma.review.delete({ where: { id: reviewId, clerkId: userId } }),
+      () => {
+        const index = fallbackStore.reviews.findIndex(
+          (review) => review.id === reviewId && review.clerkId === userId,
+        );
+        return index === -1 ? null : fallbackStore.reviews.splice(index, 1)[0];
+      },
+    );
   }
 }
